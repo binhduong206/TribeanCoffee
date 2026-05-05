@@ -1,98 +1,92 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { CuratedCollection } from "@/components/home";
+import { BestSeller } from "@/components/home/BestSeller";
+import { Header } from "@/components/home/Header";
+import { HomeBanner } from "@/components/home/HomeBanner";
+import { MorningFavorites } from "@/components/home/MorningFavorites";
+import { HOME_BANNER, HOME_CATEGORIES, HOME_USER_NAME } from "@/constants/home";
+import { theme } from "@/constants/theme";
+import "@/global.css";
+import {
+  Keyboard,
+  ScrollView,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const handleAvatarPress = () => {
+    // TODO: Navigate to profile
+  };
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleCartPress = () => {
+    // TODO: Navigate to cart
+  };
+
+  const handleBannerButtonPress = () => {
+    // TODO: Navigate to product details
+  };
+
+  const handleCategoryPress = (categoryId: string) => {
+    // TODO: Navigate to category details
+    console.log("Category pressed:", categoryId);
+  };
+
+  const categoriesWithHandlers = HOME_CATEGORIES.map((category) => ({
+    ...category,
+    onPress: () => handleCategoryPress(category.id),
+  }));
+
+  const handleProductPress = (productId: string) => {
+    // TODO: Navigate to product details
+    console.log("Product pressed:", productId);
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.container}>
+          <Header
+            userName={HOME_USER_NAME}
+            onAvatarPress={handleAvatarPress}
+            onCartPress={handleCartPress}
+            showSearchBox
+          />
+
+          <View style={styles.body}>
+            <HomeBanner
+              title={HOME_BANNER.title}
+              description={HOME_BANNER.description}
+              bannerImage={HOME_BANNER.image}
+              badge={HOME_BANNER.badge}
+              buttonLabel={HOME_BANNER.buttonLabel}
+              onButtonPress={handleBannerButtonPress}
+            />
+
+            <CuratedCollection
+              title="Curated Collection"
+              viewAllHref="/categories"
+              categories={categoriesWithHandlers}
+            />
+
+            {/* <ProductList onCategoryPress={handleProductPress} /> */}
+            <MorningFavorites />
+            <BestSeller />
+          </View>
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  body: {
+    flex: 1,
+    marginTop: theme.spacing[7],
+    paddingHorizontal: theme.spacing[5],
   },
 });
