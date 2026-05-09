@@ -3,9 +3,10 @@ import { BestSeller } from "@/components/home/BestSeller";
 import { Header } from "@/components/home/Header";
 import { HomeBanner } from "@/components/home/HomeBanner";
 import { MorningFavorites } from "@/components/home/MorningFavorites";
-import { HOME_BANNER, HOME_CATEGORIES, HOME_USER_NAME } from "@/constants/home";
+import { HOME_BANNER, HOME_CATEGORIES } from "@/constants/home";
 import { theme } from "@/constants/theme";
 import "@/global.css";
+import { router } from "expo-router";
 import {
   Keyboard,
   ScrollView,
@@ -16,11 +17,11 @@ import {
 
 export default function HomeScreen() {
   const handleAvatarPress = () => {
-    // TODO: Navigate to profile
+    router.push("/profile");
   };
 
   const handleCartPress = () => {
-    // TODO: Navigate to cart
+    router.push("/cart");
   };
 
   const handleBannerButtonPress = () => {
@@ -28,8 +29,11 @@ export default function HomeScreen() {
   };
 
   const handleCategoryPress = (categoryId: string) => {
-    // TODO: Navigate to category details
-    console.log("Category pressed:", categoryId);
+    // Chuyển sang tab Menu và truyền category
+    router.push({
+      pathname: "/menu",
+      params: { category: categoryId },
+    });
   };
 
   const categoriesWithHandlers = HOME_CATEGORIES.map((category) => ({
@@ -37,17 +41,14 @@ export default function HomeScreen() {
     onPress: () => handleCategoryPress(category.id),
   }));
 
-  const handleProductPress = (productId: string) => {
-    // TODO: Navigate to product details
-    console.log("Product pressed:", productId);
-  };
+
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.container}>
           <Header
-            userName={HOME_USER_NAME}
+            // userName={HOME_USER_NAME}
             onAvatarPress={handleAvatarPress}
             onCartPress={handleCartPress}
             showSearchBox
@@ -65,7 +66,7 @@ export default function HomeScreen() {
 
             <CuratedCollection
               title="Curated Collection"
-              viewAllHref="/categories"
+              viewAllHref={"/categories" as any}
               categories={categoriesWithHandlers}
             />
 

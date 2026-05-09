@@ -17,9 +17,9 @@ export const HOME_CATEGORIES: Category[] = [
     icon: require("@/assets/icons/tea-icon.png"),
   },
   {
-    id: "juice",
-    label: "JUICE",
-    icon: require("@/assets/icons/juice-icon.png"),
+    id: "milk tea",
+    label: "MILK TEA",
+    icon: require("@/assets/icons/milk-tea-icon.png"),
   },
   {
     id: "cake",
@@ -31,7 +31,7 @@ export const HOME_CATEGORIES: Category[] = [
 export const HOME_BANNER = {
   title: "Matcha Special",
   description: "Authentic Japanese organic matcha blended with smooth",
-  image: require("@/assets/images/banner/Matcha Tea.png"),
+  image: require("@/assets/images/banner/matcha-tea.png"),
   badge: "NEW PRODUCT",
   buttonLabel: "Try now",
 };

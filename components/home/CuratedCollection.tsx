@@ -1,12 +1,12 @@
 import type { Category } from "@/constants/home";
 import { theme } from "@/constants/theme";
-import { Link } from "expo-router";
+import { Link, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { CategoryItem } from "./CategoryItem";
 
 interface CuratedCollectionProps {
   categories: Category[];
-  viewAllHref?: string;
+  viewAllHref?: Href;
   title?: string;
 }
 

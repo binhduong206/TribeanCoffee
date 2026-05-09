@@ -1,6 +1,7 @@
 import { theme } from "@/constants/theme";
 import { useProducts } from "@/hooks/useProducts";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { router } from "expo-router";
 import {
   ActivityIndicator,
   FlatList,
@@ -74,10 +75,17 @@ export function ProductList({
       renderItem={({ item }) => (
         <DrinkCard
           name={item.productName}
+          discount={item.discount}
           description={item.description}
           price={item.price}
           rating={item.rating}
           imageUri={item.mainImgUrl}
+          onPress={() =>
+            router.push({
+              pathname: "/product/[id]",
+              params: { id: item.id },
+            })
+          }
         />
       )}
     />

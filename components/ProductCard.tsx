@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { fixImageUrl } from "@/services/api";
 import {
   Animated,
   Dimensions,
@@ -11,10 +12,9 @@ import {
 
 const { width } = Dimensions.get("window");
 
-// ── Kích thước cố định ─────────────────────────────────────
-const CARD_WIDTH = width * 0.44; // nhỏ hơn so với trước (0.55)
-const IMAGE_HEIGHT = CARD_WIDTH * 0.8; // ảnh cố định
-const CONTENT_HEIGHT = 148; // nội dung cố định → card luôn cùng chiều cao
+const CARD_WIDTH = width * 0.44;
+const IMAGE_HEIGHT = CARD_WIDTH * 0.8;
+const CONTENT_HEIGHT = 120;
 const CARD_HEIGHT = IMAGE_HEIGHT + CONTENT_HEIGHT;
 
 interface DrinkCardProps {
@@ -22,8 +22,10 @@ interface DrinkCardProps {
   description?: string;
   rating?: number;
   price?: number;
+  discount?: number; // 0–100 (%)
   imageUri?: string;
   onAddToOrder?: () => void;
+  onPress?: () => void;
 }
 
 const DrinkCard: React.FC<DrinkCardProps> = ({
@@ -31,8 +33,10 @@ const DrinkCard: React.FC<DrinkCardProps> = ({
   description = "Silky espresso with wild honey and creamy oat milk",
   rating = 4.8,
   price = 6.5,
+  discount = 0,
   imageUri,
   onAddToOrder,
+  onPress,
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -51,13 +55,22 @@ const DrinkCard: React.FC<DrinkCardProps> = ({
     }).start();
   };
 
+  const hasDiscount = discount > 0;
+  const discountedPrice = hasDiscount ? price * (1 - discount / 100) : price;
+
   return (
     <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
-      {/* ── Ảnh (chiều cao cố định) ── */}
-      <View style={styles.imageContainer}>
-        {imageUri ? (
+      {/* ── Ảnh + badge giảm giá ── */}
+      <TouchableOpacity
+        style={styles.imageContainer}
+        activeOpacity={0.9}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+      >
+        {(imageUri && imageUri.trim().length > 0) ? (
           <Image
-            source={{ uri: imageUri }}
+            source={{ uri: fixImageUrl(imageUri) }}
             style={styles.image}
             resizeMode="contain"
           />
@@ -66,11 +79,17 @@ const DrinkCard: React.FC<DrinkCardProps> = ({
             <Text style={styles.coffeeEmoji}>☕</Text>
           </View>
         )}
-      </View>
 
-      {/* ── Nội dung (chiều cao cố định, dùng flex để đẩy button xuống đáy) ── */}
+        {/* Badge % hiện ra góc trên trái khi có discount */}
+        {hasDiscount && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountBadgeText}>-{discount}%</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {/* ── Nội dung ── */}
       <View style={styles.content}>
-        {/* Tên + mô tả chiếm phần trên, cố định số dòng */}
         <View style={styles.textBlock}>
           <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
             {name}
@@ -84,25 +103,23 @@ const DrinkCard: React.FC<DrinkCardProps> = ({
           </Text>
         </View>
 
-        {/* Rating & Price luôn ở giữa */}
         <View style={styles.ratingPriceRow}>
           <View style={styles.ratingContainer}>
             <Text style={styles.star}>★</Text>
             <Text style={styles.ratingValue}>{rating.toFixed(1)}</Text>
           </View>
-          <Text style={styles.price}>${price.toFixed(2)}</Text>
+
+          {/* Giá: nếu có discount → hiện giá gốc gạch ngang + giá mới */}
+          <View style={styles.priceBlock}>
+            <Text style={[styles.price, hasDiscount && styles.priceDiscounted]}>
+              ${discountedPrice.toFixed(2)}
+            </Text>
+              {hasDiscount && (
+              <Text style={styles.originalPrice}>${price.toFixed(2)}</Text>
+            )}
+          </View>
         </View>
 
-        {/* Button luôn ở đáy */}
-        <TouchableOpacity
-          style={styles.button}
-          activeOpacity={0.85}
-          onPress={onAddToOrder}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-        >
-          <Text style={styles.buttonText}>Add to Order</Text>
-        </TouchableOpacity>
       </View>
     </Animated.View>
   );
@@ -111,55 +128,56 @@ const DrinkCard: React.FC<DrinkCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     width: CARD_WIDTH,
-    height: CARD_HEIGHT, // ← chiều cao cố định, mọi thẻ luôn bằng nhau
+    height: CARD_HEIGHT,
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     overflow: "hidden",
-    // Shadow iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.1,
     shadowRadius: 14,
-    // Shadow Android
     elevation: 8,
   },
-
-  // ── Image ──────────────────────────────────────────────
   imageContainer: {
     width: "100%",
-    height: IMAGE_HEIGHT, // cố định
-    // backgroundColor: "#1A0F0A",
+    height: IMAGE_HEIGHT,
   },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
+  image: { width: "100%", height: "100%" },
   imagePlaceholder: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#1A0F0A",
   },
-  coffeeEmoji: {
-    fontSize: 48,
+  coffeeEmoji: { fontSize: 48 },
+
+  // Badge giảm giá
+  discountBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    backgroundColor: "#E53E3E",
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  discountBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+    letterSpacing: 0.2,
   },
 
-  // ── Content ────────────────────────────────────────────
   content: {
-    height: CONTENT_HEIGHT, // cố định
+    height: CONTENT_HEIGHT,
     paddingHorizontal: 12,
     paddingTop: 10,
     paddingBottom: 10,
-    justifyContent: "space-between", // đẩy các phần đều nhau, button luôn ở đáy
+    justifyContent: "space-between",
   },
-
-  // Khối text (name + description) có chiều cao cố định
-  textBlock: {
-    flex: 1, // chiếm phần dư sau khi rating + button lấy chỗ
-    overflow: "hidden",
-  },
+  textBlock: { flex: 1, overflow: "hidden" },
   name: {
-    fontFamily: "Georgia",
+    fontFamily: "Roboto",
     fontSize: 13,
     fontWeight: "700",
     color: "#1A1A1A",
@@ -168,34 +186,33 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   description: {
-    fontFamily: "Georgia",
+    fontFamily: "Roboto",
     fontSize: 11,
     color: "#8A8A8A",
     lineHeight: 15,
   },
-
-  // ── Rating & Price ─────────────────────────────────────
   ratingPriceRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginVertical: 6,
   },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-  },
-  star: {
-    fontSize: 12,
-    color: "#F4A836",
-    lineHeight: 16,
-  },
+  ratingContainer: { flexDirection: "row", alignItems: "center", gap: 2 },
+  star: { fontSize: 12, color: "#F4A836", lineHeight: 16 },
   ratingValue: {
     fontSize: 12,
     fontWeight: "600",
     color: "#1A1A1A",
     lineHeight: 16,
+  },
+
+  // Khối giá
+  priceBlock: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between" , gap: 5},
+  originalPrice: {
+    fontSize: 11,
+    color: "#BBBBBB",
+    textDecorationLine: "line-through",
+    lineHeight: 14,
   },
   price: {
     fontSize: 15,
@@ -203,40 +220,11 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     letterSpacing: -0.4,
   },
+  priceDiscounted: {
+    color: "#E53E3E", // đỏ khi đang giảm giá
+  },
 
-  // ── Button ─────────────────────────────────────────────
-  button: {
-    backgroundColor: "#2D5016",
-    borderRadius: 10,
-    paddingVertical: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.1,
-  },
 });
 
-export default DrinkCard;
+export default React.memo(DrinkCard);
 
-// ──────────────────────────────────────────────────────────
-// USAGE EXAMPLE — render nhiều thẻ cạnh nhau
-// ──────────────────────────────────────────────────────────
-//
-// import { ScrollView } from 'react-native';
-// import DrinkCard from './DrinkCard';
-//
-// const drinks = [
-//   { id: '1', name: 'Oatmilk Honey Latte', description: 'Silky espresso with wild honey', rating: 4.8, price: 6.50, imageUri: '...' },
-//   { id: '2', name: 'Cold Brew',            description: 'Smooth & bold',                 rating: 4.6, price: 5.00, imageUri: '...' },
-//   { id: '3', name: 'Matcha Oat Latte',     description: 'Ceremonial grade matcha...',    rating: 4.9, price: 7.00, imageUri: '...' },
-// ];
-//
-// <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, padding: 16 }}>
-//   {drinks.map(d => (
-//     <DrinkCard key={d.id} {...d} onAddToOrder={() => console.log('Added', d.id)} />
-//   ))}
-// </ScrollView>
