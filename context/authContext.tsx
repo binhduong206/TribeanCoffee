@@ -1,7 +1,6 @@
 import { apiCall } from "@/services/api";
 import { refreshAccessToken } from "@/services/authService";
 import { AuthTokens, AuthUser, authStorage } from "@/utils/authStorage";
-import { router } from "expo-router";
 import {
   createContext,
   useCallback,
@@ -15,7 +14,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  getValidToken: () => Promise<string | null>; // dùng trong apiCall có auth
+  getValidToken: () => Promise<string | null>;
   updateUser: (user: AuthUser) => void;
 }
 
@@ -42,11 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setAccessToken(null);
       setUser(null);
-      // Không cần router.replace ở đây vì _layout.tsx sẽ tự động Redirect khi user là null
     }
   }, []);
 
-  // Thử refresh token, trả về access token mới hoặc null nếu thất bại
   const tryRefresh = useCallback(async (): Promise<string | null> => {
     try {
       const refreshToken = await authStorage.getRefreshToken();

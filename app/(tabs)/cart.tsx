@@ -224,8 +224,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
   },
-  backBtn: { width: 36, height: 36, justifyContent: "center" },
-  backIcon: { fontSize: 22, color: "#1A1A1A" },
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
